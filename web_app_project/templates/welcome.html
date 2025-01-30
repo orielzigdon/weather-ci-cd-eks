@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Weather App</h1>
+        <form action="{{ url_for('get_info') }}">
+            <input type="text" name="city" placeholder="Enter city name" required>
+            <button type="submit" style="background: {{ button_color }};">Submit</button>
+        </form>
+        <a href="{{ url_for('history') }}" class="history-button">View Search History</a>
+    </div>
+    {% if error %}
+      <div class="alert">
+        <div class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="35" height="35" fill="currentColor" class="bi bi-exclamation-triangle-fill" viewBox="0 0 16 16">
+                <path d="M7.938 1.016a.5.5 0 0 1 .124.16l6 10a.5.5 0 0 1-.438.744H1.438a.5.5 0 0 1-.438-.744l6-10a.5.5 0 0 1 .438-.276h6.5a.5.5 0 0 1 .438.276zM8 4a.5.5 0 0 0-.5.5v3a.5.5 0 0 0 1 0v-3A.5.5 0 0 0 8 4zm0 5a.5.5 0 0 0-.5.5v.5a.5.5 0 0 0 1 0v-.5A.5.5 0 0 0 8 9z"/>
+            </svg>
+        </div>
+        <div class="message">
+            {{ error }}
+        </div>
+      {% endif %}
+  </div>
+</body>
+</html>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f0f0f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.container {
+  background: #008397;
+  padding: 40px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  width: 80%;
+  max-width: 500px;
+  min-height: 250px;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #fff;
+}
+
+form input {
+  padding: 10px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+form button {
+  padding: 10px 20px;
+  border: none;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #0056b3;
+}
+
+form button:hover {
+  background: #003f8a;
+}
+
+a {
+  display: inline-block;
+  margin-top: 20px;
+  text-decoration: none;
+  color: #007BFF;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.history-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 20px;
+    background: #007BFF;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.history-button:hover {
+    background: #0056b3;
+}
+</style>

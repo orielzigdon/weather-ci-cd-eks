@@ -1,0 +1,63 @@
+---
+- name: Deploy ArgoCD on EKS
+  hosts: localhost
+  vars_files:
+    - vars.yml
+  tasks:
+    - name: Update kubeconfig for EKS
+      shell: >
+        aws eks update-kubeconfig --region {{ region }} --name {{ cluster_name }}
+      args:
+        executable: /bin/bash
+
+    - name: Create Namespace for ArgoCD
+      kubernetes.core.k8s:
+        state: present
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+
+    - name: Add Helm repository for ArgoCD
+      community.general.helm_repository:
+        name: argo
+        repo_url: https://argoproj.github.io/argo-helm
+
+    - name: Install ArgoCD with Helm
+      community.general.helm:
+        name: argo-cd
+        chart_ref: argo/argo-cd
+        release_namespace: "{{ namespace }}"
+        values_file: "{{ values_file }}"
+
+    - name: Wait for ArgoCD pods to be ready
+      shell: >
+        kubectl wait --for=condition=ready pods --all -n {{ namespace }} --timeout=300s
+      args:
+        executable: /bin/bash
+
+    - name: Apply ArgoCD applications
+      kubernetes.core.k8s:
+        state: present
+        src: "{{ application_file }}"
+
+    - name: Get ArgoCD Server URL
+      shell: >
+        kubectl get svc argo-cd-server -n {{ namespace }} -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+      args:
+        executable: /bin/bash
+      register: argo_url
+
+    - name: Get ArgoCD initial password
+      shell: >
+        kubectl get secret -n {{ namespace }} argo-cd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d
+      args:
+        executable: /bin/bash
+      register: argo_password
+
+    - name: Display ArgoCD information
+      debug:
+        msg:
+          - "ArgoCD is ready at: https://{{ argo_url.stdout }}"
+          - "Login with username 'admin' and password: {{ argo_password.stdout }}"
