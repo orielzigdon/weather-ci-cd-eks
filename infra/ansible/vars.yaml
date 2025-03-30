@@ -1,5 +1,0 @@
-region: "eu-north-1"
-cluster_name: "eks-cluster"
-namespace: "argo"
-values_file: "values.yaml"
-application_file: "application.yaml"

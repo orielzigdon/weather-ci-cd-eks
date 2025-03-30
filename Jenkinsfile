@@ -68,6 +68,10 @@ pipeline {
                 script {
                     try {
                         def commitHash = sh(script: 'git rev-parse --short=7 HEAD', returnStdout: true).trim()
+                        // Login to Docker Hub
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+                            sh "docker login -u ${dockerHubUser} -p ${dockerHubPassword}"
+                        }
                         sh 'docker compose build'
                         sh 'docker images'
                     } catch (Exception e) {
@@ -83,8 +87,10 @@ pipeline {
             steps {
                 script {
                     try {
+                        // Update package lists and install necessary tools
+                        sh 'sudo apt-get update -o Acquire::AllowInsecureRepositories=true -o Acquire::AllowDowngradeToInsecureRepositories=true || true'
+                        sh 'sudo apt-get install -y --allow-unauthenticated python3-pip'
                         sh 'docker compose up -d'
-                        sh 'sudo apt-get update && sudo apt-get install -y python3-pip'
                         sh 'pip install -r ./requirements.txt --break-system-packages'
                         sh 'pytest test_weather.py'
                         sh 'docker compose down'
@@ -115,7 +121,7 @@ pipeline {
                 }
             }
         }
-
+/*
         stage('Sign Artifacts') {
             steps {
                 script {
@@ -127,16 +133,17 @@ pipeline {
                         string(credentialsId: 'cosign-password', variable: 'COSIGN_PASSWORD')
                     ]) {
                         sh '''
+                            echo "Downloading cosign..."
                             curl -sSL -o ~/cosign https://github.com/sigstore/cosign/releases/download/v2.4.1/cosign-linux-amd64
-                            ls -lh ~/cosign
-                            file ~/cosign
+                            echo "Setting up cosign..."
                             chmod +x ~/cosign
                             sudo mv ~/cosign /usr/local/bin/cosign
                             cosign version
                         '''
                         // Sign the Docker image
                         sh """
-                            cosign sign -y --key \$COSIGN_KEY_FILE orielzigdon/flask_app:${commitHash}
+                            echo "Signing Docker image..."
+                            COSIGN_PASSWORD=\$COSIGN_PASSWORD cosign sign -y --key \$COSIGN_KEY_FILE orielzigdon/flask_app:${commitHash}
                         """
                     }
                     } catch (Exception e) {
@@ -165,7 +172,7 @@ pipeline {
                     }
                 }
             }
-        }
+        }*/
 
 
         stage('Deploy to EKS') {

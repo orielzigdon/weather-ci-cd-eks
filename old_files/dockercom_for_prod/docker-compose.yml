@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  flask_app_1:
+    image: orielzigdon/flask_app:latest
+    restart: always
+
+  flask_app_2:
+    image: orielzigdon/flask_app:latest
+    restart: always
+
+  nginx:
+    image: orielzigdon/nginx-image:latest
+    ports:
+      - "80:80"
+    depends_on:
+      - flask_app_1
+      - flask_app_2
+    restart: always
+
